@@ -1,4 +1,4 @@
-# OSM naar PostgreSQL
+# OSM naar PostgreSQL voorbeeld
 
 Importeer OpenStreetMap-data in PostgreSQL/PostGIS en serveer vector tiles met
 Martin. De standaardconfiguratie gebruikt een extract van Overijssel.
@@ -8,12 +8,13 @@ Martin. De standaardconfiguratie gebruikt een extract van Overijssel.
 Vereist: Docker met Docker Compose.
 
 ```sh
-git clone <repository-url>
+git clone https://github.com/MartGroothuis/osm-to-pg.git
 cd osm-to-pg
 docker compose up --build
 ```
 
-De eerste import kan even duren. Volg de voortgang met:
+Compose downloadt en importeert standaard de Overijssel-extract; de eerste import
+kan even duren. Bekijk de voortgang en eventuele fouten met:
 
 ```sh
 docker compose logs -f import
@@ -30,8 +31,8 @@ Stop de containers met `Ctrl+C`. Om ze op de achtergrond te starten, gebruik
 
 - Pas de resource-instellingen aan in `.env`, zoals `OSM2PGSQL_CACHE`,
   `OSM2PGSQL_NUMPROC` en `PG_WORK_MEM`.
-- De standaarddata-URL staat bij `OSM2PGSQL_DATAFILE` in `docker-compose.yml`.
-  Pas deze aan om een ander `.osm.pbf`-bestand of extract te importeren.
+- De standaarddata-URL staat als `OSM2PGSQL_DATAFILE` bij de `import`-service in
+  `docker-compose.yml`. Pas deze aan om een ander extract te importeren.
 - De importdefinities staan in `default.lua`; Martin is ingesteld via
   `config.yaml`.
 
