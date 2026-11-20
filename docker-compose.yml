@@ -1,0 +1,84 @@
+services:
+  db:
+    image: db:v1
+    build:
+      context: .
+      dockerfile: Dockerfile.db
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - PG_WORK_MEM
+      - PG_MAINTENANCE_WORK_MEM
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  replication:
+    image: replication:v1
+    build:
+      context: .
+      dockerfile: Dockerfile.replication
+    volumes:
+      - .:/openstreetmap-carto
+    depends_on:
+      import:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    environment:
+      - PGHOST=db
+      - PGUSER=postgres
+      - REPLICATION_INTERVAL=60
+      - PG_WORK_MEM
+      - PG_MAINTENANCE_WORK_MEM
+      - OSM2PGSQL_CACHE
+      - OSM2PGSQL_NUMPROC
+
+  import:
+    image: import:v1
+    build:
+      context: .
+      dockerfile: Dockerfile.import
+    volumes:
+      - .:/openstreetmap-carto
+    depends_on:
+      - db
+    environment:
+      - PGHOST=db
+      - PGUSER=postgres
+      - PG_WORK_MEM
+      - PG_MAINTENANCE_WORK_MEM
+      - OSM2PGSQL_CACHE
+      - OSM2PGSQL_NUMPROC
+      - OSM2PGSQL_DATAFILE=https://download.openstreetmap.fr/extracts/europe/netherlands/overijssel.osm.pbf
+      - EXTERNAL_DATA_SCRIPT_FLAGS
+
+  martin:
+    image: martin:v1
+    build:
+      context: .
+      dockerfile: Dockerfile.martin
+    volumes:
+      - .:/openstreetmap-carto
+    ports:
+      - "3005:3000"
+    depends_on:
+      import:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    environment:
+      - PGHOST=db
+      - PGUSER=postgres
+      - PG_WORK_MEM
+      - PG_MAINTENANCE_WORK_MEM
+      - OSM2PGSQL_CACHE
+      - OSM2PGSQL_NUMPROC
+
+networks:
+  bullmq-network:
+    driver: bridge
