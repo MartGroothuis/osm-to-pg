@@ -23,7 +23,7 @@ services:
       context: .
       dockerfile: Dockerfile.replication
     volumes:
-      - .:/openstreetmap-carto
+      - .:/app
     depends_on:
       import:
         condition: service_completed_successfully
@@ -44,7 +44,7 @@ services:
       context: .
       dockerfile: Dockerfile.import
     volumes:
-      - .:/openstreetmap-carto
+      - .:/app
     depends_on:
       - db
     environment:
@@ -63,7 +63,7 @@ services:
       context: .
       dockerfile: Dockerfile.martin
     volumes:
-      - .:/openstreetmap-carto
+      - .:/app
     ports:
       - "3005:3000"
     depends_on:
